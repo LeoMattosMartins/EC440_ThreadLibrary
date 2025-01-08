@@ -1,0 +1,100 @@
+                   #######                                                            
+                  ##     ##                                                           
+                  #      ##                                                           
+                 ##     ##                                          ##                
+                 #   ###                                            ##                
+                 #####                                              #                 
+        ##########                                                                    
+                ##                                                                    
+                #             ###                        ##             ######        
+                #           ### ##           #######   ###              #    #        
+                #           #    #          ##     #####                # ###         
+                #          ##  ##          ## ########                   ##           
+                #          #  ##           #        ##                    ##          
+               ##          ####          ###        #                      ##     #   
+               #          ####         ### ##      ##                       # ####    
+               #        ##   ##########     #######                     #####         
+           #############                                              ##    #         
+      ######  #                                                     ##     ##         
+     ##      ##  ################################################   #     ##          
+     #      #                                                       # ####            
+     ##  ###       ##########################################       ###               
+      ####                                                                            
+                                                                                      
+README
+	folder contents: 
+		threads.c (custom implementation of threading in user space)
+		threads.h (header file for threads.c used for implementation & testing)
+		test_threads.c (used to test threads.c)
+		Makefile (makefile for threads.c that creates the threads.o object file)
+		README (this)
+
+	description:
+		- User-level thread library in C, mimicking some pthreads functionality.
+		- Each thread is represented by a Thread Control Block (TCB), which stores its 
+		  context, stack, arguments, and status.
+		- The library uses setjmp() and longjmp() for context switching between threads.
+		- Threads are preemptively scheduled using SIGALRM signals and the setitimer() 
+		  function round-robin style every 50ms.
+
+		/* HW3 stuff */
+		- the return value of a thread is now acquired and managed via a wrapper
+		  threads can now be joined using pthread_join() where a thread will wait for
+		  another thread to exit before it begins execution
+		- threads can call lock() and unlock() function to block the scheduler from 
+		  being interrupting it
+		- semaphores have been implemented with ajoining sem_wait, sem_init, sem_post,
+		  and sem_destroy functions to ensure safe access to critical areas
+		- custom Semaphore struct also implemented to handle this
+		- for producer / consumer problems, semaphores are placed in a queue for use 
+		  in sem_post and sem_wait functions
+
+	function list:
+		- pthread_create(): Initializes a new thread with a dedicated stack and sets 
+		  its context for future execution.
+		- pthread_exit(): Marks the current thread as exited and triggers the scheduler 
+		  to switch to the next ready thread.
+		- pthread_self(): Returns the ID of the currently running thread.
+		- schedule(): A round-robin scheduler that switches between threads using setjmp() 
+		  and longjmp().
+		- setupTimer(): Configures a periodic timer to trigger the scheduler at regular 
+		  intervals using SIGALRM.
+		- ohNo(): Prints error messages and terminates the program in case of failures.
+
+		/* HW3 stuff */
+		- enqueue(): place semaphore in the queue
+		- dequeue(): remove semaphore from the queue
+		- lock(): block the scheduler from interrupting the run of a given thread
+		- unlock(): remove the block on the scheduler
+		- pthread_exit_wrapper(): store the return value of a thread 
+		- pthread_join(): blocks a thread from running until a target thread has exited
+		- sem_init(): initialise a semaphore
+		- sem_wait(): custom version of the semaphore .down()- decrement semaphore, lock
+		  if count is less than 0
+		- sem_post(): custom version of the semaphore .up()- unlock a semaphore, unblock
+		  a waiting thread if there is one
+		- sem_destroy(): delete a semaphore
+
+
+BIBLIOGRAPHY
+	find below a list of the resources I used for research during the writing of threads.c:
+	1) Linux man pages
+	2) Geeks for Geeks
+	3) IBM docs 
+	4) opengroup.org
+	5) gcc.gnu.org 
+
+
+PARTS WHICH GAVE ME A MIGRAINE
+		- test case 5 would output the following error: testcases/Makefile:68: recipe for
+                  target 'test5' failed. After talking to the TA I found that this is due to the
+		  process timing out. At some point I did pass this test case, however, due to 
+		  this timing out this result was never reported back to me via the mail, I had
+		  to ask the TA for help and he checked what was happening on the admin end.
+
+		- the round-robin scheduling test case also failed in my first couple of 
+		  submissions due to the when and where schedule(0) was called, which took me
+		  a while to understand until I figured out that not calling schedule after 
+		  the join function lets the scheduler be called every 50ms as its supposed to
+		  be.
+
